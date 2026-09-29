@@ -31,9 +31,22 @@ class WebCrawler:
         max_pages: Optional[int] = None,
         delay_seconds: Optional[float] = None,
     ):
-        self.seed_url = seed_url or settings.SEED_URL
-        self.allowed_domain = allowed_domain or settings.ALLOWED_DOMAIN
-        self.url_path_prefix = url_path_prefix or settings.URL_PATH_PREFIX
+        if seed_url:
+            self.seed_url = seed_url
+            parsed = urlparse(seed_url)
+            self.allowed_domain = allowed_domain or parsed.netloc
+            # Default to path prefix if meaningful, otherwise empty string for whole domain
+            if url_path_prefix is not None:
+                self.url_path_prefix = url_path_prefix
+            else:
+                self.url_path_prefix = parsed.path if parsed.path and parsed.path != "/" else ""
+        else:
+            self.seed_url = settings.SEED_URL
+            self.allowed_domain = allowed_domain or settings.ALLOWED_DOMAIN
+            self.url_path_prefix = (
+                url_path_prefix if url_path_prefix is not None else settings.URL_PATH_PREFIX
+            )
+
         self.max_pages = max_pages or settings.MAX_PAGES
         self.delay_seconds = (
             delay_seconds

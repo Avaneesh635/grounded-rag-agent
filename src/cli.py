@@ -25,6 +25,8 @@ def cmd_crawl(args: argparse.Namespace) -> None:
     """Crawl the website pages."""
     crawler = WebCrawler(
         seed_url=args.url,
+        allowed_domain=args.allowed_domain,
+        url_path_prefix=args.path_prefix,
         max_pages=args.max_pages,
         delay_seconds=args.delay
     )
@@ -188,6 +190,8 @@ def main() -> None:
     # Crawl command
     crawl_p = subparsers.add_parser("crawl", help="Crawl website pages")
     crawl_p.add_argument("--url", default=settings.SEED_URL, help="Seed URL to crawl")
+    crawl_p.add_argument("--allowed-domain", default=None, help="Allowed domain (defaults to domain of seed URL)")
+    crawl_p.add_argument("--path-prefix", default=None, help="Path prefix to restrict crawl (defaults to path of seed URL)")
     crawl_p.add_argument("--max-pages", type=int, default=settings.MAX_PAGES, help="Max pages to crawl")
     crawl_p.add_argument("--delay", type=float, default=settings.CRAWL_DELAY_SECONDS, help="Delay between requests")
     crawl_p.add_argument("--force", action="store_true", help="Force re-crawl ignoring cache")
