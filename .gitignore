@@ -1,14 +1,83 @@
-__pycache__/
-*.pyc
-*.pyo
-*.pyd
+# ==============================================================================
+# Git Ignore Configuration - Website-Grounded RAG Agent
+# ==============================================================================
+
+# Environment & Secrets (Never commit credentials)
+.env
+.env.local
+.env.*.local
+*.pem
+*.key
+*.cert
+!*.example
+
+# Virtual Environments
 .venv/
 env/
 venv/
-.env
-.pytest_cache/
-*.egg-info/
+ENV/
+env.bak/
+venv.bak/
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Vector Databases & Local Storage
+data/chromadb/
+chromadb/
+*.sqlite3
+*.duckdb
+*.parquet
+
+# Distribution / Packaging
 dist/
 build/
+*.egg-info/
+*.egg
+eggs/
+.installed.cfg
+develop-eggs/
+
+# Testing & Type Checking
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+.nox/
+.hypothesis/
+.mypy_cache/
+.pytype/
+.ruff_cache/
+
+# Streamlit
+.streamlit/secrets.toml
+
+# IDE & Editor Configurations
+.vscode/
+!.vscode/settings.json.example
+.idea/
+*.swp
+*.swo
+*~
+*.sublime-project
+*.sublime-workspace
+
+# Operating System Files
 .DS_Store
-data/chromadb/
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+
+# Logs & Temporary Files
+*.log
+*.tmp
+logs/
+scratch/
