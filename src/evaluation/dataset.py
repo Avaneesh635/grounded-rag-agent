@@ -24,7 +24,7 @@ EVAL_QUESTIONS: List[EvalSample] = [
         expected_refusal=False,
         expected_url_keywords=["first-steps"],
         expected_answer_keywords=["FastAPI", "@app.get", "root", "async def"],
-        description="Direct factual query matching 'First Steps' page."
+        description="Direct factual query matching 'First Steps' page.",
     ),
     EvalSample(
         id=2,
@@ -33,9 +33,8 @@ EVAL_QUESTIONS: List[EvalSample] = [
         expected_refusal=False,
         expected_url_keywords=["path-params"],
         expected_answer_keywords=["item_id", "int", "path"],
-        description="Core basic functionality question on path parameters."
+        description="Core basic functionality question on path parameters.",
     ),
-
     # 2. Paraphrased Questions
     EvalSample(
         id=3,
@@ -44,7 +43,7 @@ EVAL_QUESTIONS: List[EvalSample] = [
         expected_refusal=False,
         expected_url_keywords=["query-params"],
         expected_answer_keywords=["query", "default", "optional"],
-        description="Paraphrased query testing semantic retrieval of query parameters without using standard phrasing."
+        description="Paraphrased query testing semantic retrieval of query parameters without using standard phrasing.",
     ),
     EvalSample(
         id=4,
@@ -53,9 +52,8 @@ EVAL_QUESTIONS: List[EvalSample] = [
         expected_refusal=False,
         expected_url_keywords=["background-tasks"],
         expected_answer_keywords=["BackgroundTasks", "add_task"],
-        description="Paraphrased question about background tasks."
+        description="Paraphrased question about background tasks.",
     ),
-
     # 3. Multi-page Synthesis Questions
     EvalSample(
         id=5,
@@ -64,7 +62,7 @@ EVAL_QUESTIONS: List[EvalSample] = [
         expected_refusal=False,
         expected_url_keywords=["dependencies", "security"],
         expected_answer_keywords=["Depends", "OAuth2", "security"],
-        description="Requires cross-referencing Dependency Injection tutorial with Security tutorials."
+        description="Requires cross-referencing Dependency Injection tutorial with Security tutorials.",
     ),
     EvalSample(
         id=6,
@@ -73,9 +71,8 @@ EVAL_QUESTIONS: List[EvalSample] = [
         expected_refusal=False,
         expected_url_keywords=["sql-databases", "dependencies"],
         expected_answer_keywords=["yield", "finally", "db", "close"],
-        description="Requires synthesizing SQL database setup with yield dependencies."
+        description="Requires synthesizing SQL database setup with yield dependencies.",
     ),
-
     # 4. Misleading Questions (False Presuppositions)
     EvalSample(
         id=7,
@@ -83,8 +80,13 @@ EVAL_QUESTIONS: List[EvalSample] = [
         category="misleading",
         expected_refusal=True,
         expected_url_keywords=[],
-        expected_answer_keywords=["not support", "does not mention", "cannot find", "php"],
-        description="Misleading question assuming FastAPI executes PHP via a fake decorator."
+        expected_answer_keywords=[
+            "not support",
+            "does not mention",
+            "cannot find",
+            "php",
+        ],
+        description="Misleading question assuming FastAPI executes PHP via a fake decorator.",
     ),
     EvalSample(
         id=8,
@@ -92,8 +94,13 @@ EVAL_QUESTIONS: List[EvalSample] = [
         category="misleading",
         expected_refusal=True,
         expected_url_keywords=[],
-        expected_answer_keywords=["not mandatory", "does not require", "cannot find", "sqlalchemy"],
-        description="Misleading question claiming Django ORM is required."
+        expected_answer_keywords=[
+            "not mandatory",
+            "does not require",
+            "cannot find",
+            "sqlalchemy",
+        ],
+        description="Misleading question claiming Django ORM is required.",
     ),
     EvalSample(
         id=9,
@@ -101,10 +108,14 @@ EVAL_QUESTIONS: List[EvalSample] = [
         category="misleading",
         expected_refusal=True,
         expected_url_keywords=[],
-        expected_answer_keywords=["cannot find", "not support", "does not", "information"],
-        description="Misleading question assuming fake JavaScript compilation flag."
+        expected_answer_keywords=[
+            "cannot find",
+            "not support",
+            "does not",
+            "information",
+        ],
+        description="Misleading question assuming fake JavaScript compilation flag.",
     ),
-
     # 5. Unanswerable Questions (Completely Out of Scope)
     EvalSample(
         id=10,
@@ -113,7 +124,7 @@ EVAL_QUESTIONS: List[EvalSample] = [
         expected_refusal=True,
         expected_url_keywords=[],
         expected_answer_keywords=["cannot find sufficient information"],
-        description="Unrelated out-of-domain cooking question."
+        description="Unrelated out-of-domain cooking question.",
     ),
     EvalSample(
         id=11,
@@ -122,7 +133,7 @@ EVAL_QUESTIONS: List[EvalSample] = [
         expected_refusal=True,
         expected_url_keywords=[],
         expected_answer_keywords=["cannot find sufficient information"],
-        description="Unrelated out-of-domain sports question."
+        description="Unrelated out-of-domain sports question.",
     ),
     EvalSample(
         id=12,
@@ -131,6 +142,6 @@ EVAL_QUESTIONS: List[EvalSample] = [
         expected_refusal=True,
         expected_url_keywords=[],
         expected_answer_keywords=["cannot find sufficient information"],
-        description="Out-of-scope infrastructure topic not covered in basic tutorial pages."
+        description="Out-of-scope infrastructure topic not covered in basic tutorial pages.",
     ),
 ]

@@ -51,7 +51,7 @@ class VectorStoreManager:
         self,
         documents: List[Document],
         batch_size: int = 64,
-        clear_existing: bool = True
+        clear_existing: bool = True,
     ) -> int:
         """Index a list of Document objects into ChromaDB."""
         if clear_existing:
@@ -61,26 +61,32 @@ class VectorStoreManager:
             console.print("[yellow]No documents provided for indexing.[/yellow]")
             return 0
 
-        console.print(f"[bold cyan]Indexing {len(documents)} chunks into ChromaDB...[/bold cyan]")
+        console.print(
+            f"[bold cyan]Indexing {len(documents)} chunks into ChromaDB...[/bold cyan]"
+        )
 
         # Index in batches
         for i in range(0, len(documents), batch_size):
             batch = documents[i : i + batch_size]
             ids = [
-                d.metadata.get("chunk_id", f"doc-{i+idx}")
+                d.metadata.get("chunk_id", f"doc-{i + idx}")
                 for idx, d in enumerate(batch)
             ]
             self.vectorstore.add_documents(documents=batch, ids=ids)
-            console.print(f"  Indexed batch {i//batch_size + 1}/{(len(documents)-1)//batch_size + 1} ({len(batch)} chunks)")
+            console.print(
+                f"  Indexed batch {i // batch_size + 1}/{(len(documents) - 1) // batch_size + 1} ({len(batch)} chunks)"
+            )
 
-        console.print(f"[bold green]Successfully indexed {len(documents)} chunks into ChromaDB![/bold green]")
+        console.print(
+            f"[bold green]Successfully indexed {len(documents)} chunks into ChromaDB![/bold green]"
+        )
         return len(documents)
 
     def similarity_search_with_relevance_scores(
         self,
         query: str,
         k: int = settings.TOP_K,
-        score_threshold: Optional[float] = None
+        score_threshold: Optional[float] = None,
     ) -> List[Tuple[Document, float]]:
         """Perform similarity search with normalized relevance scores."""
         threshold = (
@@ -90,13 +96,14 @@ class VectorStoreManager:
         )
         try:
             results = self.vectorstore.similarity_search_with_relevance_scores(
-                query=query,
-                k=k,
-                score_threshold=threshold
+                query=query, k=k, score_threshold=threshold
             )
             return results
         except Exception as e:
-            logger.warning("Similarity search with score threshold failed: %s. Falling back to plain search.", e)
+            logger.warning(
+                "Similarity search with score threshold failed: %s. Falling back to plain search.",
+                e,
+            )
             raw_docs = self.vectorstore.similarity_search(query=query, k=k)
             # Default placeholder score if relevance score is unavailable
             return [(doc, 0.75) for doc in raw_docs]

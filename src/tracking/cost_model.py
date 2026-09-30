@@ -10,6 +10,7 @@ from src.config import settings
 @dataclass
 class CostBreakdown:
     """Detailed cost metrics for a single operation."""
+
     prompt_tokens: int
     completion_tokens: int
     total_tokens: int
@@ -35,7 +36,9 @@ class CostModel:
         return cls.PRICING.get("gpt-4o-mini", {"input": 0.15, "output": 0.60})
 
     @classmethod
-    def calculate_embedding_cost(cls, tokens: int, model_name: str = settings.OPENAI_EMBEDDING_MODEL) -> float:
+    def calculate_embedding_cost(
+        cls, tokens: int, model_name: str = settings.OPENAI_EMBEDDING_MODEL
+    ) -> float:
         """Calculate embedding cost in USD."""
         pricing = cls.get_pricing(model_name)
         rate_per_1m = pricing.get("input", 0.0)
@@ -46,7 +49,7 @@ class CostModel:
         cls,
         prompt_tokens: int,
         completion_tokens: int,
-        model_name: str = settings.OPENAI_MODEL
+        model_name: str = settings.OPENAI_MODEL,
     ) -> CostBreakdown:
         """Calculate LLM generation cost breakdown in USD."""
         pricing = cls.get_pricing(model_name)
@@ -64,7 +67,7 @@ class CostModel:
             input_cost_usd=input_cost,
             output_cost_usd=output_cost,
             total_cost_usd=total_cost,
-            model_name=model_name
+            model_name=model_name,
         )
 
     @classmethod
@@ -75,36 +78,44 @@ class CostModel:
         ingestion_tokens: int = 45000,
         query_volumes: Optional[List[int]] = None,
         llm_model: str = settings.OPENAI_MODEL,
-        embedding_model: str = settings.OPENAI_EMBEDDING_MODEL
+        embedding_model: str = settings.OPENAI_EMBEDDING_MODEL,
     ) -> List[Dict]:
         """Project total costs across query volumes (1, 100, 1,000, 10,000)."""
         if query_volumes is None:
             query_volumes = [1, 100, 1_000, 10_000]
 
         ingestion_cost = cls.calculate_embedding_cost(ingestion_tokens, embedding_model)
-        query_cost_info = cls.calculate_llm_cost(avg_prompt_tokens, avg_completion_tokens, llm_model)
+        query_cost_info = cls.calculate_llm_cost(
+            avg_prompt_tokens, avg_completion_tokens, llm_model
+        )
         single_query_cost = query_cost_info.total_cost_usd
 
         projections = []
         for count in query_volumes:
             total_query_cost = count * single_query_cost
             total_cost = ingestion_cost + total_query_cost
-            projections.append({
-                "query_count": count,
-                "ingestion_tokens": ingestion_tokens,
-                "ingestion_cost_usd": ingestion_cost,
-                "avg_query_tokens": avg_prompt_tokens + avg_completion_tokens,
-                "query_cost_usd": total_query_cost,
-                "total_cost_usd": total_cost,
-                "llm_model": llm_model,
-                "embedding_model": embedding_model,
-            })
+            projections.append(
+                {
+                    "query_count": count,
+                    "ingestion_tokens": ingestion_tokens,
+                    "ingestion_cost_usd": ingestion_cost,
+                    "avg_query_tokens": avg_prompt_tokens + avg_completion_tokens,
+                    "query_cost_usd": total_query_cost,
+                    "total_cost_usd": total_cost,
+                    "llm_model": llm_model,
+                    "embedding_model": embedding_model,
+                }
+            )
         return projections
 
     @classmethod
     def format_projections_table(cls, projections: List[Dict]) -> Table:
         """Build a Rich table summarizing cost projections."""
-        table = Table(title="Website-Grounded RAG Cost Projections", show_header=True, header_style="bold magenta")
+        table = Table(
+            title="Website-Grounded RAG Cost Projections",
+            show_header=True,
+            header_style="bold magenta",
+        )
         table.add_column("Query Volume", justify="right", style="cyan")
         table.add_column("Ingestion Cost ($)", justify="right", style="dim")
         table.add_column("Query Cost ($)", justify="right", style="green")
@@ -123,6 +134,6 @@ class CostModel:
                 f"${i_cost:.5f}",
                 f"${q_cost:.4f}",
                 f"${t_cost:.4f}",
-                f"${rate_per_1k:.4f}"
+                f"${rate_per_1k:.4f}",
             )
         return table

@@ -43,7 +43,9 @@ class GroundedRAGAgent:
         workflow.add_node("grade_documents", self.node_grade_documents)
         workflow.add_node("generate_answer", self.node_generate_answer)
         workflow.add_node("verify_grounding", self.node_verify_grounding)
-        workflow.add_node("refuse_insufficient_info", self.node_refuse_insufficient_info)
+        workflow.add_node(
+            "refuse_insufficient_info", self.node_refuse_insufficient_info
+        )
 
         # Build pipeline flow
         workflow.add_edge(START, "rewrite_query")
@@ -51,7 +53,9 @@ class GroundedRAGAgent:
         workflow.add_edge("retrieve", "grade_documents")
 
         # Conditional branch based on information sufficiency
-        def route_sufficiency(state: AgentState) -> Literal["generate_answer", "refuse_insufficient_info"]:
+        def route_sufficiency(
+            state: AgentState,
+        ) -> Literal["generate_answer", "refuse_insufficient_info"]:
             if state.get("has_sufficient_info", False):
                 return "generate_answer"
             return "refuse_insufficient_info"
@@ -62,7 +66,7 @@ class GroundedRAGAgent:
             {
                 "generate_answer": "generate_answer",
                 "refuse_insufficient_info": "refuse_insufficient_info",
-            }
+            },
         )
 
         workflow.add_edge("generate_answer", "verify_grounding")
@@ -77,13 +81,15 @@ class GroundedRAGAgent:
 
         # If query is short and clean, use directly
         words = query.split()
-        if len(words) <= 7 and not any(q in query.lower() for q in ["can you tell me", "i would like to know"]):
+        if len(words) <= 7 and not any(
+            q in query.lower() for q in ["can you tell me", "i would like to know"]
+        ):
             return {"rewritten_query": query}
 
         try:
             messages = [
                 SystemMessage(content=QUERY_REWRITER_SYSTEM_PROMPT),
-                HumanMessage(content=f"Question: {query}")
+                HumanMessage(content=f"Question: {query}"),
             ]
             response = self.llm.invoke(messages)
             rewritten = response.content.strip().strip('"').strip("'")
@@ -95,9 +101,10 @@ class GroundedRAGAgent:
     def node_retrieve(self, state: AgentState) -> Dict:
         """Retrieve relevant context chunks from ChromaDB."""
         search_query = state.get("rewritten_query") or state.get("query", "")
-        results_with_scores = self.vectorstore_mgr.similarity_search_with_relevance_scores(
-            query=search_query,
-            k=settings.TOP_K
+        results_with_scores = (
+            self.vectorstore_mgr.similarity_search_with_relevance_scores(
+                query=search_query, k=settings.TOP_K
+            )
         )
 
         docs = []
@@ -124,7 +131,14 @@ class GroundedRAGAgent:
                 filtered.append(doc)
 
         # Check for obvious unanswerable/out-of-domain triggers
-        ood_terms = ["sourdough", "bread", "cricket", "world cup", "capital of france", "recipe"]
+        ood_terms = [
+            "sourdough",
+            "bread",
+            "cricket",
+            "world cup",
+            "capital of france",
+            "recipe",
+        ]
         if any(term in query.lower() for term in ood_terms):
             return {"filtered_documents": [], "has_sufficient_info": False}
 
@@ -147,23 +161,23 @@ class GroundedRAGAgent:
         for idx, doc in enumerate(docs, start=1):
             url = doc.metadata.get("source", "Unknown URL")
             title = doc.metadata.get("title", "Document")
-            context_blocks.append(
-                f"[Source {idx}: {url}] {title}\n{doc.page_content}"
-            )
+            context_blocks.append(f"[Source {idx}: {url}] {title}\n{doc.page_content}")
             if url not in unique_sources:
                 unique_sources[url] = {
                     "index": idx,
                     "url": url,
                     "title": title,
-                    "snippet": doc.page_content[:200] + "..."
+                    "snippet": doc.page_content[:200] + "...",
                 }
 
         formatted_context = "\n\n".join(context_blocks)
-        user_prompt = GROUNDED_USER_PROMPT.format(query=query, context=formatted_context)
+        user_prompt = GROUNDED_USER_PROMPT.format(
+            query=query, context=formatted_context
+        )
 
         messages = [
             SystemMessage(content=GROUNDED_SYSTEM_PROMPT),
-            HumanMessage(content=user_prompt)
+            HumanMessage(content=user_prompt),
         ]
 
         response = self.llm.invoke(messages)
@@ -195,7 +209,7 @@ class GroundedRAGAgent:
             completion_text=answer,
             model_name=model_name,
             retrieved_chunks_count=len(docs),
-            cited_urls_count=len(sources_list)
+            cited_urls_count=len(sources_list),
         )
 
         return {
@@ -227,7 +241,7 @@ class GroundedRAGAgent:
             )
             messages = [
                 SystemMessage(content=HALLUCINATION_GRADER_SYSTEM_PROMPT),
-                HumanMessage(content=prompt)
+                HumanMessage(content=prompt),
             ]
             res = self.llm.invoke(messages)
             text = res.content.strip()
@@ -238,7 +252,9 @@ class GroundedRAGAgent:
                 is_grounded = bool(data.get("is_grounded", True))
                 return {
                     "grounded": is_grounded,
-                    "hallucination_grade": "grounded" if is_grounded else "hallucinated"
+                    "hallucination_grade": "grounded"
+                    if is_grounded
+                    else "hallucinated",
                 }
         except Exception:
             pass
@@ -257,7 +273,7 @@ class GroundedRAGAgent:
             completion_text=refusal,
             model_name=model_name,
             retrieved_chunks_count=0,
-            cited_urls_count=0
+            cited_urls_count=0,
         )
 
         return {

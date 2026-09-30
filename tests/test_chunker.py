@@ -13,7 +13,7 @@ def test_chunker_basic():
         description="Getting started",
         text="FastAPI is a modern web framework. " * 30,
         char_count=1000,
-        word_count=150
+        word_count=150,
     )
 
     docs, total_tokens = chunker.chunk_pages([page])

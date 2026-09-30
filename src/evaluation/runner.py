@@ -42,10 +42,15 @@ class EvaluationRunner:
             "not available",
             "no information",
         ]
-        is_refusal = any(m in answer.lower() for m in refusal_markers) or len(sources) == 0
+        is_refusal = (
+            any(m in answer.lower() for m in refusal_markers) or len(sources) == 0
+        )
 
         refusal_correct = (is_refusal == sample.expected_refusal) or (
-            sample.category == "misleading" and any(k.lower() in answer.lower() for k in sample.expected_answer_keywords)
+            sample.category == "misleading"
+            and any(
+                k.lower() in answer.lower() for k in sample.expected_answer_keywords
+            )
         )
 
         # 2. Assess Retrieval Recall
@@ -63,9 +68,7 @@ class EvaluationRunner:
         keyword_hits = sum(
             1 for kw in sample.expected_answer_keywords if kw.lower() in answer.lower()
         )
-        content_pass = (
-            keyword_hits > 0 if sample.expected_answer_keywords else True
-        )
+        content_pass = keyword_hits > 0 if sample.expected_answer_keywords else True
 
         # Overall sample passed
         sample_passed = refusal_correct and (sample.expected_refusal or retrieval_hit)
@@ -90,16 +93,30 @@ class EvaluationRunner:
 
     def run_suite(self, output_path: Optional[Path] = None) -> Dict:
         """Run the full 12-question evaluation suite."""
-        console.print("[bold cyan]═══════════════════════════════════════════════════════════[/bold cyan]")
-        console.print("[bold cyan]       Running Website-Grounded RAG Evaluation Suite        [/bold cyan]")
-        console.print("[bold cyan]═══════════════════════════════════════════════════════════[/bold cyan]\n")
+        console.print(
+            "[bold cyan]═══════════════════════════════════════════════════════════[/bold cyan]"
+        )
+        console.print(
+            "[bold cyan]       Running Website-Grounded RAG Evaluation Suite        [/bold cyan]"
+        )
+        console.print(
+            "[bold cyan]═══════════════════════════════════════════════════════════[/bold cyan]\n"
+        )
 
         results: List[Dict] = []
         for sample in EVAL_QUESTIONS:
-            console.print(f"Evaluating Q{sample.id} [{sample.category.upper()}]: {sample.question[:65]}...")
+            console.print(
+                f"Evaluating Q{sample.id} [{sample.category.upper()}]: {sample.question[:65]}..."
+            )
             sample_res = self.evaluate_sample(sample)
-            status_symbol = "[bold green]PASS ✓[/bold green]" if sample_res["sample_passed"] else "[bold red]FAIL ✗[/bold red]"
-            console.print(f"  Result: {status_symbol} (Latency: {sample_res['latency_sec']}s, Cost: ${sample_res['cost_usd']:.6f})")
+            status_symbol = (
+                "[bold green]PASS ✓[/bold green]"
+                if sample_res["sample_passed"]
+                else "[bold red]FAIL ✗[/bold red]"
+            )
+            console.print(
+                f"  Result: {status_symbol} (Latency: {sample_res['latency_sec']}s, Cost: ${sample_res['cost_usd']:.6f})"
+            )
             results.append(sample_res)
 
         # Compute aggregate metrics
@@ -109,18 +126,32 @@ class EvaluationRunner:
 
         refusal_tests = [r for r in results if r["expected_refusal"]]
         refusal_correct = sum(1 for r in refusal_tests if r["refusal_correct"])
-        refusal_rate = (refusal_correct / len(refusal_tests)) * 100.0 if refusal_tests else 0.0
+        refusal_rate = (
+            (refusal_correct / len(refusal_tests)) * 100.0 if refusal_tests else 0.0
+        )
 
         answerable_tests = [r for r in results if not r["expected_refusal"]]
         retrieval_hits = sum(1 for r in answerable_tests if r["retrieval_hit"])
-        retrieval_recall = (retrieval_hits / len(answerable_tests)) * 100.0 if answerable_tests else 0.0
+        retrieval_recall = (
+            (retrieval_hits / len(answerable_tests)) * 100.0
+            if answerable_tests
+            else 0.0
+        )
 
-        avg_latency = sum(r["latency_sec"] for r in results) / total if total > 0 else 0.0
+        avg_latency = (
+            sum(r["latency_sec"] for r in results) / total if total > 0 else 0.0
+        )
         avg_tokens = sum(r["tokens"] for r in results) / total if total > 0 else 0.0
         total_cost = sum(r["cost_usd"] for r in results)
 
         # Categorical Breakdown
-        categories = ["straightforward", "paraphrased", "multi-page", "misleading", "unanswerable"]
+        categories = [
+            "straightforward",
+            "paraphrased",
+            "multi-page",
+            "misleading",
+            "unanswerable",
+        ]
         category_stats = {}
         for cat in categories:
             cat_results = [r for r in results if r["category"] == cat]
@@ -170,13 +201,23 @@ class EvaluationRunner:
                 cat.capitalize(),
                 str(stats["total"]),
                 str(stats["passed"]),
-                f"{stats['pass_rate']:.1f}%"
+                f"{stats['pass_rate']:.1f}%",
             )
         console.print(table)
 
-        console.print(f"\n[bold]Overall Pass Rate:[/bold] [bold green]{summary['overall_pass_rate_pct']}%[/bold green]")
-        console.print(f"[bold]Grounding / Refusal Accuracy:[/bold] [bold green]{summary['refusal_accuracy_pct']}%[/bold green]")
-        console.print(f"[bold]Retrieval Recall (Answerable):[/bold] [bold green]{summary['retrieval_recall_pct']}%[/bold green]")
+        console.print(
+            f"\n[bold]Overall Pass Rate:[/bold] [bold green]{summary['overall_pass_rate_pct']}%[/bold green]"
+        )
+        console.print(
+            f"[bold]Grounding / Refusal Accuracy:[/bold] [bold green]{summary['refusal_accuracy_pct']}%[/bold green]"
+        )
+        console.print(
+            f"[bold]Retrieval Recall (Answerable):[/bold] [bold green]{summary['retrieval_recall_pct']}%[/bold green]"
+        )
         console.print(f"[bold]Average Latency:[/bold] {summary['avg_latency_sec']}s")
-        console.print(f"[bold]Average Tokens / Query:[/bold] {summary['avg_tokens_per_query']}")
-        console.print(f"[bold]Total Evaluation Cost:[/bold] ${summary['total_eval_cost_usd']:.6f}")
+        console.print(
+            f"[bold]Average Tokens / Query:[/bold] {summary['avg_tokens_per_query']}"
+        )
+        console.print(
+            f"[bold]Total Evaluation Cost:[/bold] ${summary['total_eval_cost_usd']:.6f}"
+        )

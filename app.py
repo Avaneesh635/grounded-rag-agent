@@ -19,11 +19,12 @@ st.set_page_config(
     page_title="Website-Grounded RAG Agent",
     page_icon="🌐",
     layout="wide",
-    initial_sidebar_state="expanded"
+    initial_sidebar_state="expanded",
 )
 
 # Custom Styling
-st.markdown("""
+st.markdown(
+    """
 <style>
     .metric-card {
         background-color: #f0f2f6;
@@ -46,7 +47,9 @@ st.markdown("""
         font-weight: bold;
     }
 </style>
-""", unsafe_allow_html=True)
+""",
+    unsafe_allow_html=True,
+)
 
 
 @st.cache_resource
@@ -77,12 +80,14 @@ with st.sidebar:
         st.rerun()
 
 # Tabs
-tab_chat, tab_eval, tab_cost, tab_kb = st.tabs([
-    "💬 Interactive Q&A",
-    "🧪 Evaluation Suite",
-    "📊 Token & Cost Analysis",
-    "📚 Knowledge Base"
-])
+tab_chat, tab_eval, tab_cost, tab_kb = st.tabs(
+    [
+        "💬 Interactive Q&A",
+        "🧪 Evaluation Suite",
+        "📊 Token & Cost Analysis",
+        "📚 Knowledge Base",
+    ]
+)
 
 # ----------------- TAB 1: INTERACTIVE Q&A -----------------
 with tab_chat:
@@ -106,7 +111,7 @@ with tab_chat:
     query_input = st.text_input(
         "Enter your question:",
         value=sample_q if sample_q else "",
-        placeholder="e.g., How do you define a root endpoint in FastAPI?"
+        placeholder="e.g., How do you define a root endpoint in FastAPI?",
     )
 
     if st.button("Submit Query", type="primary") or sample_q:
@@ -124,12 +129,16 @@ with tab_chat:
             if sources:
                 st.markdown("### Supporting Source URLs")
                 for s in sources:
-                    with st.expander(f"[{s.get('index', 1)}] {s.get('title')} — {s.get('url')}"):
+                    with st.expander(
+                        f"[{s.get('index', 1)}] {s.get('title')} — {s.get('url')}"
+                    ):
                         st.markdown(f"**URL:** [{s.get('url')}]({s.get('url')})")
                         st.markdown(f"**Snippet Preview:**")
                         st.text(s.get("snippet", ""))
             else:
-                st.info("No sources cited. The agent determined that sufficient information was not available on the website.")
+                st.info(
+                    "No sources cited. The agent determined that sufficient information was not available on the website."
+                )
 
             # Metrics row
             tokens = result.get("token_usage", {})
@@ -156,14 +165,18 @@ with tab_eval:
 
         results_list = []
         for idx, sample in enumerate(EVAL_QUESTIONS):
-            status_text.text(f"Running Q{sample.id}/{len(EVAL_QUESTIONS)}: {sample.question[:50]}...")
+            status_text.text(
+                f"Running Q{sample.id}/{len(EVAL_QUESTIONS)}: {sample.question[:50]}..."
+            )
             res = runner.evaluate_sample(sample)
             results_list.append(res)
             progress_bar.progress((idx + 1) / len(EVAL_QUESTIONS))
 
         status_text.text("Evaluation complete!")
         summary = runner.run_suite(output_path=eval_json_path)
-        st.success(f"Evaluation complete! Overall Pass Rate: {summary['overall_pass_rate_pct']}%")
+        st.success(
+            f"Evaluation complete! Overall Pass Rate: {summary['overall_pass_rate_pct']}%"
+        )
 
     if eval_json_path.exists():
         with open(eval_json_path, "r", encoding="utf-8") as f:
@@ -171,29 +184,41 @@ with tab_eval:
 
         c1, c2, c3, c4 = st.columns(4)
         c1.metric("Overall Pass Rate", f"{eval_data['overall_pass_rate_pct']}%")
-        c2.metric("Grounding / Refusal Accuracy", f"{eval_data['refusal_accuracy_pct']}%")
-        c3.metric("Retrieval Recall (Answerable)", f"{eval_data['retrieval_recall_pct']}%")
+        c2.metric(
+            "Grounding / Refusal Accuracy", f"{eval_data['refusal_accuracy_pct']}%"
+        )
+        c3.metric(
+            "Retrieval Recall (Answerable)", f"{eval_data['retrieval_recall_pct']}%"
+        )
         c4.metric("Total Evaluation Cost", f"${eval_data['total_eval_cost_usd']:.5f}")
 
         st.markdown("### Categorical Breakdown")
         cat_rows = []
         for cat, stats in eval_data.get("category_breakdown", {}).items():
-            cat_rows.append({
-                "Category": cat.capitalize(),
-                "Total Questions": stats["total"],
-                "Passed": stats["passed"],
-                "Pass Rate (%)": f"{stats['pass_rate']:.1f}%"
-            })
+            cat_rows.append(
+                {
+                    "Category": cat.capitalize(),
+                    "Total Questions": stats["total"],
+                    "Passed": stats["passed"],
+                    "Pass Rate (%)": f"{stats['pass_rate']:.1f}%",
+                }
+            )
         st.table(cat_rows)
 
         st.markdown("### Detailed Question Results")
         for q in eval_data.get("detailed_results", []):
             passed = q.get("sample_passed", False)
             status_badge = "🟢 PASS" if passed else "🔴 FAIL"
-            with st.expander(f"{status_badge} Q{q['id']} [{q['category'].upper()}] - {q['question']}"):
+            with st.expander(
+                f"{status_badge} Q{q['id']} [{q['category'].upper()}] - {q['question']}"
+            ):
                 st.write(f"**Description:** {q.get('description')}")
-                st.write(f"**Expected Refusal:** {q.get('expected_refusal')} | **Actual Refusal:** {q.get('actual_refusal')}")
-                st.write(f"**Latency:** {q.get('latency_sec')}s | **Cost:** ${q.get('cost_usd', 0.0):.6f}")
+                st.write(
+                    f"**Expected Refusal:** {q.get('expected_refusal')} | **Actual Refusal:** {q.get('actual_refusal')}"
+                )
+                st.write(
+                    f"**Latency:** {q.get('latency_sec')}s | **Cost:** ${q.get('cost_usd', 0.0):.6f}"
+                )
                 st.markdown("**Answer:**")
                 st.write(q.get("answer_full", ""))
                 st.markdown("**Cited Sources:**")
@@ -216,11 +241,19 @@ with tab_cost:
     i1, i2, i3 = st.columns(3)
     i1.metric("Crawled Pages", len(pages))
     i2.metric("Total Ingestion Tokens", f"{total_ingest_tokens:,}")
-    embed_cost = CostModel.calculate_embedding_cost(total_ingest_tokens, settings.OPENAI_EMBEDDING_MODEL)
+    embed_cost = CostModel.calculate_embedding_cost(
+        total_ingest_tokens, settings.OPENAI_EMBEDDING_MODEL
+    )
     i3.metric("One-time Ingestion Cost (OpenAI)", f"${embed_cost:.5f}")
 
     st.subheader("2. Query Volume Scaling Projections")
-    custom_vol = st.slider("Simulate Custom Query Volume", min_value=10, max_value=50000, value=5000, step=100)
+    custom_vol = st.slider(
+        "Simulate Custom Query Volume",
+        min_value=10,
+        max_value=50000,
+        value=5000,
+        step=100,
+    )
 
     volumes = [1, 100, 1_000, 10_000, custom_vol]
     projections = CostModel.generate_projections(
@@ -229,18 +262,20 @@ with tab_cost:
         ingestion_tokens=total_ingest_tokens,
         query_volumes=sorted(list(set(volumes))),
         llm_model=settings.OPENAI_MODEL,
-        embedding_model=settings.OPENAI_EMBEDDING_MODEL
+        embedding_model=settings.OPENAI_EMBEDDING_MODEL,
     )
 
     proj_rows = []
     for p in projections:
-        proj_rows.append({
-            "Query Volume": f"{p['query_count']:,}",
-            "Ingestion Cost ($)": f"${p['ingestion_cost_usd']:.5f}",
-            "Query Cost ($)": f"${p['query_cost_usd']:.4f}",
-            "Total Cost ($)": f"${p['total_cost_usd']:.4f}",
-            "Cost per 1k Queries ($)": f"${(p['query_cost_usd'] / p['query_count']) * 1000:.4f}"
-        })
+        proj_rows.append(
+            {
+                "Query Volume": f"{p['query_count']:,}",
+                "Ingestion Cost ($)": f"${p['ingestion_cost_usd']:.5f}",
+                "Query Cost ($)": f"${p['query_cost_usd']:.4f}",
+                "Total Cost ($)": f"${p['total_cost_usd']:.4f}",
+                "Cost per 1k Queries ($)": f"${(p['query_cost_usd'] / p['query_count']) * 1000:.4f}",
+            }
+        )
     st.table(proj_rows)
 
     st.info(
@@ -252,9 +287,16 @@ with tab_cost:
 with tab_kb:
     st.header("Crawled Documentation Knowledge Base")
     if pages:
-        st.write(f"The knowledge base currently contains **{len(pages)}** crawled documentation pages.")
+        st.write(
+            f"The knowledge base currently contains **{len(pages)}** crawled documentation pages."
+        )
         kb_data = [
-            {"#": i+1, "Page Title": p.title, "Word Count": p.word_count, "URL": p.url}
+            {
+                "#": i + 1,
+                "Page Title": p.title,
+                "Word Count": p.word_count,
+                "URL": p.url,
+            }
             for i, p in enumerate(pages)
         ]
         st.dataframe(kb_data, use_container_width=True)

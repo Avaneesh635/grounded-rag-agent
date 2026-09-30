@@ -10,6 +10,7 @@ import trafilatura
 @dataclass
 class CleanedPage:
     """Represents cleaned and extracted content from a webpage."""
+
     url: str
     title: str
     description: str
@@ -66,15 +67,23 @@ class ContentCleaner:
             include_links=False,
             include_images=False,
             favor_precision=True,
-            output_format="txt"
+            output_format="txt",
         )
 
         # Fallback to BeautifulSoup if trafilatura extracts too little
         if not extracted_text or len(extracted_text.strip()) < 120:
             # Strip unwanted elements
-            for tag in soup(["script", "style", "nav", "header", "footer", "aside", "form"]):
+            for tag in soup(
+                ["script", "style", "nav", "header", "footer", "aside", "form"]
+            ):
                 tag.decompose()
-            for cls_to_remove in ["md-header", "md-sidebar", "md-footer", "navbar", "sidebar"]:
+            for cls_to_remove in [
+                "md-header",
+                "md-sidebar",
+                "md-footer",
+                "navbar",
+                "sidebar",
+            ]:
                 for el in soup.find_all(class_=cls_to_remove):
                     el.decompose()
             extracted_text = soup.get_text(separator="\n", strip=True)
@@ -100,5 +109,5 @@ class ContentCleaner:
             description=description,
             text=text,
             char_count=len(text),
-            word_count=len(words)
+            word_count=len(words),
         )

@@ -12,9 +12,7 @@ def test_cost_calculation():
 
     # LLM query cost
     breakdown = CostModel.calculate_llm_cost(
-        prompt_tokens=1000,
-        completion_tokens=200,
-        model_name="gpt-4o-mini"
+        prompt_tokens=1000, completion_tokens=200, model_name="gpt-4o-mini"
     )
     # 1000 * 0.15/1M = 0.00015, 200 * 0.60/1M = 0.00012 -> total = 0.00027
     assert abs(breakdown.total_cost_usd - 0.00027) < 1e-6
@@ -25,7 +23,7 @@ def test_cost_projections():
         avg_prompt_tokens=1000,
         avg_completion_tokens=200,
         ingestion_tokens=50_000,
-        query_volumes=[1, 100, 1000, 10000]
+        query_volumes=[1, 100, 1000, 10000],
     )
     assert len(projections) == 4
     p_10k = [p for p in projections if p["query_count"] == 10000][0]

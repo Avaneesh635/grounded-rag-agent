@@ -39,29 +39,33 @@ class WebCrawler:
             if url_path_prefix is not None:
                 self.url_path_prefix = url_path_prefix
             else:
-                self.url_path_prefix = parsed.path if parsed.path and parsed.path != "/" else ""
+                self.url_path_prefix = (
+                    parsed.path if parsed.path and parsed.path != "/" else ""
+                )
         else:
             self.seed_url = settings.SEED_URL
             self.allowed_domain = allowed_domain or settings.ALLOWED_DOMAIN
             self.url_path_prefix = (
-                url_path_prefix if url_path_prefix is not None else settings.URL_PATH_PREFIX
+                url_path_prefix
+                if url_path_prefix is not None
+                else settings.URL_PATH_PREFIX
             )
 
         self.max_pages = max_pages or settings.MAX_PAGES
         self.delay_seconds = (
-            delay_seconds
-            if delay_seconds is not None
-            else settings.CRAWL_DELAY_SECONDS
+            delay_seconds if delay_seconds is not None else settings.CRAWL_DELAY_SECONDS
         )
 
         self.visited_urls: Set[str] = set()
         self.crawled_pages: List[CleanedPage] = []
         self.session = requests.Session()
-        self.session.headers.update({
-            "User-Agent": settings.USER_AGENT,
-            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-            "Accept-Language": "en-US,en;q=0.5",
-        })
+        self.session.headers.update(
+            {
+                "User-Agent": settings.USER_AGENT,
+                "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+                "Accept-Language": "en-US,en;q=0.5",
+            }
+        )
 
     def normalize_url(self, raw_url: str, base_url: str) -> Optional[str]:
         """Normalize URL, removing fragments and tracking params while resolving relative paths."""
@@ -78,7 +82,11 @@ class WebCrawler:
 
             # Enforce domain
             netloc = parsed.netloc.lower()
-            if self.allowed_domain and netloc != self.allowed_domain and not netloc.endswith("." + self.allowed_domain):
+            if (
+                self.allowed_domain
+                and netloc != self.allowed_domain
+                and not netloc.endswith("." + self.allowed_domain)
+            ):
                 return None
 
             # Enforce path prefix if configured
@@ -88,9 +96,22 @@ class WebCrawler:
 
             # Skip common non-html extensions
             skip_extensions = (
-                ".png", ".jpg", ".jpeg", ".gif", ".svg", ".ico",
-                ".pdf", ".zip", ".tar", ".gz", ".json", ".xml",
-                ".mp4", ".mp3", ".css", ".js"
+                ".png",
+                ".jpg",
+                ".jpeg",
+                ".gif",
+                ".svg",
+                ".ico",
+                ".pdf",
+                ".zip",
+                ".tar",
+                ".gz",
+                ".json",
+                ".xml",
+                ".mp4",
+                ".mp3",
+                ".css",
+                ".js",
             )
             if any(path.lower().endswith(ext) for ext in skip_extensions):
                 return None
@@ -123,9 +144,7 @@ class WebCrawler:
         try:
             time.sleep(self.delay_seconds)
             response = self.session.get(
-                url,
-                timeout=settings.CRAWL_TIMEOUT_SECONDS,
-                allow_redirects=True
+                url, timeout=settings.CRAWL_TIMEOUT_SECONDS, allow_redirects=True
             )
 
             if response.status_code != 200:
@@ -158,14 +177,18 @@ class WebCrawler:
         """Run BFS crawler up to max_pages."""
         # Check cache if available and not forced
         if not force_recrawl and settings.CRAWLED_DATA_FILE.exists():
-            console.print(f"[bold green]Loading cached crawled data from {settings.CRAWLED_DATA_FILE}...[/bold green]")
+            console.print(
+                f"[bold green]Loading cached crawled data from {settings.CRAWLED_DATA_FILE}...[/bold green]"
+            )
             cached = self.load_crawled_data()
             if cached and len(cached) >= min(15, self.max_pages):
                 console.print(f"[green]Loaded {len(cached)} pages from cache.[/green]")
                 self.crawled_pages = cached
                 return self.crawled_pages
 
-        console.print(f"[bold cyan]Starting BFS Crawl on {self.seed_url} (Max: {self.max_pages} pages)...[/bold cyan]")
+        console.print(
+            f"[bold cyan]Starting BFS Crawl on {self.seed_url} (Max: {self.max_pages} pages)...[/bold cyan]"
+        )
         queue: deque[str] = deque([self.seed_url])
         self.visited_urls.clear()
         self.crawled_pages.clear()
@@ -176,7 +199,9 @@ class WebCrawler:
                 continue
 
             self.visited_urls.add(current_url)
-            console.print(f"[{len(self.crawled_pages)+1}/{self.max_pages}] Crawling: [blue]{current_url}[/blue]")
+            console.print(
+                f"[{len(self.crawled_pages) + 1}/{self.max_pages}] Crawling: [blue]{current_url}[/blue]"
+            )
 
             result = self.crawl_page(current_url)
             if not result:
@@ -184,13 +209,17 @@ class WebCrawler:
 
             cleaned_page, new_links = result
             self.crawled_pages.append(cleaned_page)
-            console.print(f"  ✓ Extracted: [green]{cleaned_page.title}[/green] ({cleaned_page.word_count} words)")
+            console.print(
+                f"  ✓ Extracted: [green]{cleaned_page.title}[/green] ({cleaned_page.word_count} words)"
+            )
 
             for link in new_links:
                 if link not in self.visited_urls and link not in queue:
                     queue.append(link)
 
-        console.print(f"\n[bold green]Crawl completed! Successfully indexed {len(self.crawled_pages)} pages.[/bold green]")
+        console.print(
+            f"\n[bold green]Crawl completed! Successfully indexed {len(self.crawled_pages)} pages.[/bold green]"
+        )
         self.save_crawled_data()
         return self.crawled_pages
 

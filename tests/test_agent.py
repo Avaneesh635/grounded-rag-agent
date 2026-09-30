@@ -22,6 +22,13 @@ def test_agent_unanswerable_refusal():
 
 def test_agent_misleading_refutation():
     agent = GroundedRAGAgent()
-    res = agent.ask("How do you enable FastAPI's built-in PHP compiler using the @app.php() decorator?")
+    res = agent.ask(
+        "How do you enable FastAPI's built-in PHP compiler using the @app.php() decorator?"
+    )
     ans_lower = res["answer"].lower()
-    assert "not support" in ans_lower or "does not mention" in ans_lower or "cannot find" in ans_lower or "not execute php" in ans_lower
+    assert (
+        "not support" in ans_lower
+        or "does not mention" in ans_lower
+        or "cannot find" in ans_lower
+        or "not execute php" in ans_lower
+    )

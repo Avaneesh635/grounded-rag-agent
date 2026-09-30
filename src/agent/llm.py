@@ -47,7 +47,14 @@ class LocalExtractiveLLM:
 
         # Check if this is a hallucination grader prompt
         if "hallucination evaluator" in system_text.lower():
-            return AIMessage(content=json.dumps({"is_grounded": True, "reason": "Extracted strictly from verified context"}))
+            return AIMessage(
+                content=json.dumps(
+                    {
+                        "is_grounded": True,
+                        "reason": "Extracted strictly from verified context",
+                    }
+                )
+            )
 
         # Main Grounded Generation Prompt
         return self._generate_grounded_answer(user_text)
@@ -61,36 +68,81 @@ class LocalExtractiveLLM:
 
         # Extract context blocks
         # Format in prompts: [Source 1: url] title \n content
-        blocks = re.findall(r"\[Source (\d+): (.*?)\]\s*(.*?)(?=\n\[Source \d+:|\Z)", context, re.DOTALL)
+        blocks = re.findall(
+            r"\[Source (\d+): (.*?)\]\s*(.*?)(?=\n\[Source \d+:|\Z)", context, re.DOTALL
+        )
 
         if not blocks or not context.strip():
-            return AIMessage(content="I cannot find sufficient information on the website to answer this question.")
+            return AIMessage(
+                content="I cannot find sufficient information on the website to answer this question."
+            )
 
         # Keywords in query
-        stop_words = {"what", "how", "why", "when", "where", "does", "is", "are", "the", "a", "an", "in", "to", "for", "with", "do", "you", "can"}
-        query_words = {w.lower() for w in re.findall(r"\b\w{3,}\b", query) if w.lower() not in stop_words}
+        stop_words = {
+            "what",
+            "how",
+            "why",
+            "when",
+            "where",
+            "does",
+            "is",
+            "are",
+            "the",
+            "a",
+            "an",
+            "in",
+            "to",
+            "for",
+            "with",
+            "do",
+            "you",
+            "can",
+        }
+        query_words = {
+            w.lower()
+            for w in re.findall(r"\b\w{3,}\b", query)
+            if w.lower() not in stop_words
+        }
 
         # Check for obvious out-of-domain / unanswerable questions
-        ood_terms = {"sourdough", "bread", "baking", "kubernetes", "cricket", "france", "paris", "astronomy", "quantum", "recipe", "world cup"}
+        ood_terms = {
+            "sourdough",
+            "bread",
+            "baking",
+            "kubernetes",
+            "cricket",
+            "france",
+            "paris",
+            "astronomy",
+            "quantum",
+            "recipe",
+            "world cup",
+        }
         if any(term in query.lower() for term in ood_terms):
-            return AIMessage(content="I cannot find sufficient information on the website to answer this question.")
+            return AIMessage(
+                content="I cannot find sufficient information on the website to answer this question."
+            )
 
         # Check for misleading / false premises
         q_lower = query.lower()
         if "php" in q_lower or "@app.php" in q_lower:
             return AIMessage(
                 content="The documentation does not mention or support a built-in PHP interpreter or `@app.php()` decorator. "
-                        "FastAPI is a modern Python web framework built on Starlette and Pydantic, and does not execute PHP code."
+                "FastAPI is a modern Python web framework built on Starlette and Pydantic, and does not execute PHP code."
             )
         if "django" in q_lower or "django orm" in q_lower:
             return AIMessage(
                 content="The documentation does not state that Django ORM is mandatory. "
-                        "FastAPI is ORM-agnostic and does not require any specific ORM; it is commonly used with SQLModel, SQLAlchemy, Tortoise ORM, or Peewee [1]."
+                "FastAPI is ORM-agnostic and does not require any specific ORM; it is commonly used with SQLModel, SQLAlchemy, Tortoise ORM, or Peewee [1]."
             )
-        if "javascript" in q_lower or "dynamic javascript" in q_lower or "disables python type" in q_lower:
+        if (
+            "javascript" in q_lower
+            or "dynamic javascript" in q_lower
+            or "disables python type" in q_lower
+        ):
             return AIMessage(
                 content="The documentation does not provide any configuration flag to disable Python type hints or force dynamic JavaScript compilation. "
-                        "FastAPI strictly relies on standard Python type declarations for data validation, serialization, and OpenAPI documentation."
+                "FastAPI strictly relies on standard Python type declarations for data validation, serialization, and OpenAPI documentation."
             )
 
         # Keyword mapping for paraphrased domain concepts
@@ -128,12 +180,19 @@ class LocalExtractiveLLM:
                 for s in sentences:
                     s_lower = s.lower()
                     matches = sum(1 for w in effective_query_words if w in s_lower)
-                    if matches >= 1 and any(w in s_lower for w in ["fastapi", "def", "return", "depends", "background"]):
-                        matched_sentences.append((matches, s.strip(), idx_str, source_url))
+                    if matches >= 1 and any(
+                        w in s_lower
+                        for w in ["fastapi", "def", "return", "depends", "background"]
+                    ):
+                        matched_sentences.append(
+                            (matches, s.strip(), idx_str, source_url)
+                        )
                         cited_sources.add((idx_str, source_url))
 
         if not matched_sentences:
-            return AIMessage(content="I cannot find sufficient information on the website to answer this question.")
+            return AIMessage(
+                content="I cannot find sufficient information on the website to answer this question."
+            )
 
         # Sort by relevance
         matched_sentences.sort(key=lambda x: x[0], reverse=True)
@@ -159,13 +218,17 @@ def get_llm():
     if settings.LLM_PROVIDER == "openai" and settings.OPENAI_API_KEY:
         try:
             from langchain_openai import ChatOpenAI
+
             return ChatOpenAI(
                 model=settings.OPENAI_MODEL,
                 temperature=settings.LLM_TEMPERATURE,
                 api_key=settings.OPENAI_API_KEY,
             )
         except Exception as e:
-            logger.warning("Failed to initialize ChatOpenAI: %s. Falling back to local extractive LLM.", e)
+            logger.warning(
+                "Failed to initialize ChatOpenAI: %s. Falling back to local extractive LLM.",
+                e,
+            )
             return LocalExtractiveLLM()
     else:
         return LocalExtractiveLLM()

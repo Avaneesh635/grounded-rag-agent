@@ -57,7 +57,7 @@ class TokenTracker:
         pages_count: int,
         chunks_count: int,
         total_tokens: int,
-        model_name: str = settings.OPENAI_EMBEDDING_MODEL
+        model_name: str = settings.OPENAI_EMBEDDING_MODEL,
     ) -> IngestionStats:
         """Record vector store ingestion statistics."""
         cost = CostModel.calculate_embedding_cost(total_tokens, model_name)
@@ -66,7 +66,7 @@ class TokenTracker:
             total_chunks=chunks_count,
             total_tokens=total_tokens,
             embedding_model=model_name,
-            estimated_cost_usd=cost
+            estimated_cost_usd=cost,
         )
         return self.ingestion
 
@@ -79,7 +79,7 @@ class TokenTracker:
         retrieved_chunks_count: int = 0,
         cited_urls_count: int = 0,
         prompt_tokens_override: Optional[int] = None,
-        completion_tokens_override: Optional[int] = None
+        completion_tokens_override: Optional[int] = None,
     ) -> QueryStats:
         """Record a single user query execution with exact/estimated token counts."""
         prompt_tokens = (
@@ -93,7 +93,9 @@ class TokenTracker:
             else self.count_tokens(completion_text)
         )
 
-        cost_info = CostModel.calculate_llm_cost(prompt_tokens, completion_tokens, model_name)
+        cost_info = CostModel.calculate_llm_cost(
+            prompt_tokens, completion_tokens, model_name
+        )
 
         q_stats = QueryStats(
             query=query,
@@ -103,7 +105,7 @@ class TokenTracker:
             cost_usd=cost_info.total_cost_usd,
             model_name=model_name,
             retrieved_chunks_count=retrieved_chunks_count,
-            cited_urls_count=cited_urls_count
+            cited_urls_count=cited_urls_count,
         )
         self.queries.append(q_stats)
         return q_stats
@@ -116,7 +118,9 @@ class TokenTracker:
         total_queries = len(self.queries)
 
         avg_prompt = total_prompt_tokens // total_queries if total_queries else 0
-        avg_completion = total_completion_tokens // total_queries if total_queries else 0
+        avg_completion = (
+            total_completion_tokens // total_queries if total_queries else 0
+        )
 
         return {
             "ingestion": {
@@ -134,8 +138,9 @@ class TokenTracker:
                 "avg_prompt_tokens": avg_prompt,
                 "avg_completion_tokens": avg_completion,
                 "total_query_cost_usd": total_query_cost,
-                "total_system_cost_usd": self.ingestion.estimated_cost_usd + total_query_cost,
-            }
+                "total_system_cost_usd": self.ingestion.estimated_cost_usd
+                + total_query_cost,
+            },
         }
 
 

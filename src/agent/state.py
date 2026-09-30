@@ -7,6 +7,7 @@ from langchain_core.documents import Document
 
 class AgentState(TypedDict, total=False):
     """Represents the complete state of the RAG agent throughout graph execution."""
+
     query: str
     rewritten_query: str
     documents: List[Document]

@@ -8,9 +8,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
-        env_file=".env",
-        env_file_encoding="utf-8",
-        extra="ignore"
+        env_file=".env", env_file_encoding="utf-8", extra="ignore"
     )
 
     # Project Paths
@@ -26,7 +24,9 @@ class Settings(BaseSettings):
     MAX_PAGES: int = 50
     CRAWL_DELAY_SECONDS: float = 0.2
     CRAWL_TIMEOUT_SECONDS: int = 10
-    USER_AGENT: str = "WebsiteGroundedRAGBot/1.0 (+https://github.com/assessment/rag-agent)"
+    USER_AGENT: str = (
+        "WebsiteGroundedRAGBot/1.0 (+https://github.com/assessment/rag-agent)"
+    )
 
     # Text Splitting & Chunking
     CHUNK_SIZE: int = 1200  # characters
@@ -53,21 +53,21 @@ class Settings(BaseSettings):
     # Pricing Models (per 1,000,000 tokens in USD)
     PRICING: Dict[str, Dict[str, float]] = {
         "gpt-4o-mini": {
-            "input": 0.150,    # $0.15 per 1M input tokens
-            "output": 0.600,   # $0.60 per 1M output tokens
+            "input": 0.150,  # $0.15 per 1M input tokens
+            "output": 0.600,  # $0.60 per 1M output tokens
         },
         "gpt-4o": {
-            "input": 2.500,    # $2.50 per 1M input tokens
+            "input": 2.500,  # $2.50 per 1M input tokens
             "output": 10.000,  # $10.00 per 1M output tokens
         },
         "text-embedding-3-small": {
-            "input": 0.020,    # $0.02 per 1M tokens
+            "input": 0.020,  # $0.02 per 1M tokens
             "output": 0.0,
         },
         "BAAI/bge-small-en-v1.5": {
-            "input": 0.0,      # Local, 0 cost
+            "input": 0.0,  # Local, 0 cost
             "output": 0.0,
-        }
+        },
     }
 
 

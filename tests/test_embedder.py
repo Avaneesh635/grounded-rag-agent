@@ -1,7 +1,11 @@
 """Unit tests for embedding providers."""
 
 import pytest
-from src.indexing.embedder import FastEmbedEmbeddingsWrapper, MockEmbeddings, get_embeddings
+from src.indexing.embedder import (
+    FastEmbedEmbeddingsWrapper,
+    MockEmbeddings,
+    get_embeddings,
+)
 
 
 def test_mock_embeddings():

@@ -16,6 +16,7 @@ class FastEmbedEmbeddingsWrapper(Embeddings):
 
     def __init__(self, model_name: str = settings.FASTEMBED_MODEL):
         from fastembed import TextEmbedding
+
         self.model_name = model_name
         self.client = TextEmbedding(model_name=self.model_name)
         self.total_tokens_embedded = 0
@@ -69,12 +70,15 @@ def get_embeddings(provider: Optional[str] = None) -> Embeddings:
             return FastEmbedEmbeddingsWrapper()
         try:
             from langchain_openai import OpenAIEmbeddings
+
             return OpenAIEmbeddings(
-                model=settings.OPENAI_EMBEDDING_MODEL,
-                api_key=api_key
+                model=settings.OPENAI_EMBEDDING_MODEL, api_key=api_key
             )
         except Exception as e:
-            logger.error("Failed to initialize OpenAI embeddings: %s. Falling back to FastEmbed.", e)
+            logger.error(
+                "Failed to initialize OpenAI embeddings: %s. Falling back to FastEmbed.",
+                e,
+            )
             return FastEmbedEmbeddingsWrapper()
 
     elif prov == "mock":

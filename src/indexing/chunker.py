@@ -23,17 +23,8 @@ class TextChunker:
         self.splitter = RecursiveCharacterTextSplitter(
             chunk_size=self.chunk_size,
             chunk_overlap=self.chunk_overlap,
-            separators=[
-                "\n## ",
-                "\n### ",
-                "\n#### ",
-                "\n\n",
-                "\n",
-                ". ",
-                " ",
-                ""
-            ],
-            keep_separator=True
+            separators=["\n## ", "\n### ", "\n#### ", "\n\n", "\n", ". ", " ", ""],
+            keep_separator=True,
         )
         try:
             self.tokenizer = tiktoken.get_encoding("cl100k_base")
@@ -74,8 +65,8 @@ class TextChunker:
                     "chunk_index": idx,
                     "total_chunks_in_page": len(raw_chunks),
                     "token_count": token_count,
-                    "char_count": len(chunk_text)
-                }
+                    "char_count": len(chunk_text),
+                },
             )
             documents.append(doc)
 
