@@ -291,6 +291,3 @@ All 11 unit and integration tests verify:
 
 ---
 
-## 📹 Video Walkthrough Guide
-
-A complete 10–15 minute recording outline with timestamps, talking points, and presentation script is provided in [WALKTHROUGH.md](file:///home/avaneesh/projects/two/WALKTHROUGH.md).
